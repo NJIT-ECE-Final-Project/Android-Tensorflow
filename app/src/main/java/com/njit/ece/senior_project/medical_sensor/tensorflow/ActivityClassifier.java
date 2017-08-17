@@ -41,6 +41,7 @@ public class ActivityClassifier {
         public int getNum() {
             return num;
         }
+
     }
 
     // why can't Java just let you convert a number to a enum???

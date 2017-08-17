@@ -1,11 +1,180 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
+    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity"
+    android:orientation="vertical">
 
     <TextView android:text="Hello World!" android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
-</RelativeLayout>
+
+    <!--Parent elementfor all accelerometer sensor readings-->
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!--Label-->
+        <TextView android:text="Total Acceleration: " android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!--x axis label and value-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:text="x: " android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView android:text="1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/total_acc_x" />
+            </LinearLayout>
+
+            <!--y axis label and value-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:text="y: " android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView android:text="1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/total_acc_y"/>
+            </LinearLayout>
+
+            <!--z axis label and value-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:text="z: " android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView android:text="1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/total_acc_z"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+
+    <!--Parent elementfor all filtered acceleration readings-->
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!--Label-->
+        <TextView android:text="Body Acceleration: " android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!--x axis label and value-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:text="x: " android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView android:text="1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/body_acc_x" />
+            </LinearLayout>
+
+            <!--y axis label and value-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:text="y: " android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView android:text="1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/body_acc_y"/>
+            </LinearLayout>
+
+            <!--z axis label and value-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:text="z: " android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView android:text="1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/body_acc_z"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!--Parent elementfor all gyroscope sensor readings-->
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!--Label-->
+        <TextView android:text="Gyroscope: " android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!--x axis label and value-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:text="x: " android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView android:text="1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/gyro_x" />
+            </LinearLayout>
+
+            <!--y axis label and value-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:text="y: " android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView android:text="1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/gyro_y"/>
+            </LinearLayout>
+
+            <!--z axis label and value-->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView android:text="z: " android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView android:text="1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/gyro_z"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Classification: "/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/activity_label"/>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
