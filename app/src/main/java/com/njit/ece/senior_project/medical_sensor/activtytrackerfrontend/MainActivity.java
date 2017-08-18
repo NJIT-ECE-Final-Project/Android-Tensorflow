@@ -9,8 +9,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.ClassificationListener;
+import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.ClassificationProvider;
+import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.TensorflowClassificationProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.AndroidSensorDataProvider;
-import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataListener;
 import com.njit.ece.senior_project.medical_sensor.data.Filters.SimpleHighPass;
 import com.njit.ece.senior_project.medical_sensor.data.SampleLoader.SampleDataLoader;
 import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
@@ -18,16 +20,18 @@ import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
 import java.io.File;
 
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener, DataListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener, ClassificationListener {
 
     private File signalsFolder;
 
     private int timeSteps = 128;
 
     private SensorManager sensorManager;
+
     private ActivityClassifier classifier;
 
     private AndroidSensorDataProvider dataProvider = new AndroidSensorDataProvider();
+    private ClassificationProvider classificationProvider;
 
     private SimpleHighPass highPassFilters[] = new SimpleHighPass[3];
 
@@ -36,10 +40,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        classifier = new ActivityClassifier(this, "file:///android_asset/frozen_har.pb");
+        classificationProvider = new TensorflowClassificationProvider(this,  "file:///android_asset/frozen_har.pb");
+        
         // get a sensor manager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        // initialize the classifier with the trained model
-        classifier = new ActivityClassifier(this, "file:///android_asset/frozen_har.pb");
 
         for(int i = 0; i < 3; i++) {
             highPassFilters[i] = new SimpleHighPass();
@@ -47,7 +52,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // get updates of the sensor values for ourself to update the view
         dataProvider.addSensorEventListener(this);
-        dataProvider.addDataListener(this);
+
+
+        dataProvider.addDataListener(classificationProvider);
+        classificationProvider.addClassificationListener(this);
     }
 
 
@@ -105,15 +113,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private void classifyData(float[][][] data) {
-
-        // run the classifier
-        ActivityClassifier.Activity classification = classifier.classify(data);
-
-        ((TextView) this.findViewById(R.id.activity_label)).setText(classification.toString());
-
-        Log.d("Classification", "Classification is: " + classification);
-    }
 
     private void updateGyroSensorTest(SensorEvent event) {
 
@@ -154,8 +153,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Log.w("Sensors", "i = " + i);
     }
 
+
     @Override
-    public void onDataChanged(float[][][] sensorData) {
-        classifyData(sensorData);
+    public void onClassificationChanged(ActivityClassifier.Activity newClassification) {
+        ((TextView) this.findViewById(R.id.activity_label)).setText(newClassification.toString());
+
+        Log.d("Classification", "Classification is: " + newClassification);
     }
 }
