@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         classifier = new ActivityClassifier(this, "file:///android_asset/frozen_har.pb");
         classificationProvider = new TensorflowClassificationProvider(this,  "file:///android_asset/frozen_har.pb");
-        
+
         // get a sensor manager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
