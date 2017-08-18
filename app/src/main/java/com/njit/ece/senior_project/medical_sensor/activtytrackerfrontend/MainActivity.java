@@ -9,15 +9,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.AndroidSensorDataProvider;
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataListener;
 import com.njit.ece.senior_project.medical_sensor.data.Filters.SimpleHighPass;
 import com.njit.ece.senior_project.medical_sensor.data.SampleLoader.SampleDataLoader;
-import com.njit.ece.senior_project.medical_sensor.data.SignalType;
 import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
 
 import java.io.File;
 
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener, DataListener {
 
     private File signalsFolder;
 
@@ -26,15 +27,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager sensorManager;
     private ActivityClassifier classifier;
 
+    private AndroidSensorDataProvider dataProvider = new AndroidSensorDataProvider();
 
-    // one high-pass filter per accelerometer axis
-    private SimpleHighPass[] highPassFilters = new SimpleHighPass[3];
-
-
-    // incremented until timesteps is reached
-    int accel_t = 0;
-    int gyro_t = 0;
-    float[][][] dataBuffer;
+    private SimpleHighPass highPassFilters[] = new SimpleHighPass[3];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +45,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             highPassFilters[i] = new SimpleHighPass();
         }
 
-        dataBuffer = new float[1][timeSteps][SignalType.values().length];
+        // get updates of the sensor values for ourself to update the view
+        dataProvider.addSensorEventListener(this);
+        dataProvider.addDataListener(this);
     }
 
 
@@ -60,12 +57,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onResume();
 
         // register a listener for the accelerometer data
-        sensorManager.registerListener(this,
+        sensorManager.registerListener(dataProvider,
                 sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                 SensorManager.SENSOR_DELAY_GAME); // game provides the desired 20 ms delay for 50Hz
 
         // register another listener for the gyroscope data
-        sensorManager.registerListener(this,
+        sensorManager.registerListener(dataProvider,
                 sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
                 SensorManager.SENSOR_DELAY_GAME); // game provides the desired 20 ms delay for 50Hz
 
@@ -94,19 +91,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onPause() {
         // unregister listener (for now don't do the classification while the App is paused)
         super.onPause();
-        sensorManager.unregisterListener(this);
+        sensorManager.unregisterListener(dataProvider);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-
-        Log.d("Timestep", "accel_t: " + accel_t + " gyro_t: " + gyro_t);
-
-        if(accel_t == timeSteps && gyro_t == timeSteps) {
-            classifyData();
-            accel_t = 0;
-            gyro_t = 0;
-        }
 
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             // acceleromter data
@@ -116,10 +105,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private void classifyData() {
+    private void classifyData(float[][][] data) {
 
         // run the classifier
-        ActivityClassifier.Activity classification = classifier.classify(dataBuffer);
+        ActivityClassifier.Activity classification = classifier.classify(data);
 
         ((TextView) this.findViewById(R.id.activity_label)).setText(classification.toString());
 
@@ -134,13 +123,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         ((TextView)this.findViewById(R.id.gyro_y)).setText(Float.toString(gyro[1]));
         ((TextView)this.findViewById(R.id.gyro_z)).setText(Float.toString(gyro[2]));
 
-        // add gyro values to data buffer
-        if(gyro_t < timeSteps) {
-            for(int i = 0; i < 3; i++) {
-                dataBuffer[0][gyro_t][i + 3] = gyro[i];
-            }
-            gyro_t++;
-        }
     }
 
     private void updateAccelSensorText(SensorEvent event) {
@@ -163,14 +145,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         ((TextView)this.findViewById(R.id.body_acc_y)).setText(Float.toString(accel_filtered[1]));
         ((TextView)this.findViewById(R.id.body_acc_z)).setText(Float.toString(accel_filtered[2]));
 
-        if(accel_t < timeSteps) {
-            for(int i = 0; i < 3; i++) {
-                dataBuffer[0][accel_t][i] = accel_filtered[i];
-                dataBuffer[0][accel_t][i + 6] = accel[i];
-            }
-            accel_t++;
-        }
-
     }
 
     @Override
@@ -180,4 +154,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Log.w("Sensors", "i = " + i);
     }
 
+    @Override
+    public void onDataChanged(float[][][] sensorData) {
+        classifyData(sensorData);
+    }
 }
