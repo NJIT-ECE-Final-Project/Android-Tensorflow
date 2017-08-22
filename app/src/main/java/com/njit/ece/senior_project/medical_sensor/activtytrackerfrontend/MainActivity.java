@@ -1,5 +1,6 @@
 package com.njit.ece.senior_project.medical_sensor.activtytrackerfrontend;
 
+import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -7,17 +8,23 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.njit.ece.senior_project.medical_sensor.activtytrackerfrontend.util.ViewUtil;
 import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.ClassificationListener;
 import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.ClassificationProvider;
 import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.TensorflowClassificationProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.AndroidSensorDataProvider;
 import com.njit.ece.senior_project.medical_sensor.data.Filters.SimpleHighPass;
 import com.njit.ece.senior_project.medical_sensor.data.SampleLoader.SampleDataLoader;
+import com.njit.ece.senior_project.medical_sensor.data.util.ArrayHelper;
 import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
 
 import java.io.File;
+import java.lang.reflect.Array;
 
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, ClassificationListener {
@@ -35,13 +42,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private SimpleHighPass highPassFilters[] = new SimpleHighPass[3];
 
+    private String classificationProbs[] = new String[ActivityClassifier.Activity.values().length];
+
+    private ArrayAdapter<String> classficationProbsAdaptor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        classifier = new ActivityClassifier(this, "file:///android_asset/frozen_har.pb");
-        classificationProvider = new TensorflowClassificationProvider(this,  "file:///android_asset/frozen_har.pb");
+        classifier = new ActivityClassifier(this, "file:///android_asset/frozen_har_new.pb");
+        classificationProvider = new TensorflowClassificationProvider(this,  "file:///android_asset/frozen_har_new.pb");
 
         // get a sensor manager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -56,6 +67,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         dataProvider.addDataListener(classificationProvider);
         classificationProvider.addClassificationListener(this);
+
+        // initialize classification list to show a ? for all probs
+        for(int i = 0; i < classificationProbs.length; i++) {
+
+            ActivityClassifier.Activity activity = classifier.activityFromInt(i + 1 /*arrays start at 0*/);
+
+            classificationProbs[i] = activity.name() + " (" + i + "): ?";
+        }
+
+        // create the adaptor to show probability values in the list view
+        final ListView classificationProbView = (ListView) findViewById(R.id.classification_probabilities);
+        classficationProbsAdaptor = new ArrayAdapter<>(this, R.layout.layout_list_item, classificationProbs);
+        classificationProbView.setAdapter(classficationProbsAdaptor);
+
     }
 
 
@@ -85,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 float[][][] dataSet = dataLoader.getNextRow();
 
                 // run the data through the classifier
-                ActivityClassifier.Activity activity = classifier.classify(dataSet);
+                ActivityClassifier.Activity activity = classifier.classify(classifier.getProbabilities(dataSet));
 
                 Log.i("Test Classification", "The activity is: " + activity + " (" + activity.getNum() + ")");
             }
@@ -158,5 +183,29 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         ((TextView) this.findViewById(R.id.activity_label)).setText(newClassification.toString());
 
         Log.d("Classification", "Classification is: " + newClassification);
+    }
+
+    @Override
+    public void onProbabilitiesChanged(float[] probabilities) {
+
+        for(int i = 0; i < probabilities.length; i++) {
+            ActivityClassifier.Activity activity = classifier.activityFromInt(i + 1 /*arrays start at 0*/);
+            classificationProbs[i] = activity.name() + " (" + i + "): " + probabilities[i];
+        }
+
+        // refresh the list
+        classficationProbsAdaptor.notifyDataSetChanged();
+
+        // make the activity which is most likely bold
+        ListView probListView = (ListView) findViewById(R.id.classification_probabilities);
+        for(int i = 0; i < probListView.getCount(); i++) {
+            TextView itemView = (TextView) ViewUtil.getViewByPosition(i, probListView);
+
+            if(i != ArrayHelper.indexOfMax(probabilities)) {
+                itemView.setTypeface(null, Typeface.NORMAL);
+            } else {
+                itemView.setTypeface(null, Typeface.BOLD);
+            }
+        }
     }
 }

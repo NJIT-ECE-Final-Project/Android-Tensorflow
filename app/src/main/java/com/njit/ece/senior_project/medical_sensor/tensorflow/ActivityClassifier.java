@@ -18,8 +18,8 @@ public class ActivityClassifier {
 
     private TensorFlowInferenceInterface inferenceInterface;
     private static final String INPUT_NODE = "X";
-    private static final String[] OUTPUT_NODES = {"y_"};
-    private static final String OUTPUT_NODE = "y_";
+    private static final String[] OUTPUT_NODES = {"y_no_softmax"};
+    private static final String OUTPUT_NODE = "y_no_softmax";
     private static final long[] INPUT_SIZE = {1, 128, 9};
     private static final int OUTPUT_SIZE = 6;
 
@@ -45,7 +45,7 @@ public class ActivityClassifier {
     }
 
     // why can't Java just let you convert a number to a enum???
-    private Activity activityFromInt(int n) {
+    public Activity activityFromInt(int n) {
         switch(n) {
             case 1:
                 return Activity.WALKING;
@@ -76,15 +76,12 @@ public class ActivityClassifier {
     }
 
 
-    public Activity classify(float[][][] signals) {
-
-        float[] inputFlat = ArrayHelper.flatten(signals);
-
-        float[] probDistribution = new float[OUTPUT_SIZE];
-        inferenceInterface.feed(INPUT_NODE, inputFlat, INPUT_SIZE);
-        inferenceInterface.run(OUTPUT_NODES);
-        inferenceInterface.fetch(OUTPUT_NODE, probDistribution);
-
+    /**
+     * Given the probabilities of each classification, return the most likely classification
+     * @param probDistribution
+     * @return
+     */
+    public Activity classify(float[] probDistribution) {
 
         // find the most likely classification from the probability distribution
         int maxIndex = 0;
@@ -98,6 +95,22 @@ public class ActivityClassifier {
 
         return activityFromInt(maxIndex + 1 /*arrays start at 0...*/);
 
+    }
+
+    /**
+     * Get the probability of each classification
+     * @param signals
+     * @return
+     */
+    public float[] getProbabilities(float[][][] signals) {
+        float[] inputFlat = ArrayHelper.flatten(signals);
+
+        float[] probDistribution = new float[OUTPUT_SIZE];
+        inferenceInterface.feed(INPUT_NODE, inputFlat, INPUT_SIZE);
+        inferenceInterface.run(OUTPUT_NODES);
+        inferenceInterface.fetch(OUTPUT_NODE, probDistribution);
+
+        return probDistribution;
     }
 
 

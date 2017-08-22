@@ -9,4 +9,6 @@ public interface ClassificationListener {
 
     void onClassificationChanged(ActivityClassifier.Activity newClassification);
 
+    void onProbabilitiesChanged(float[] probabilities);
+
 }

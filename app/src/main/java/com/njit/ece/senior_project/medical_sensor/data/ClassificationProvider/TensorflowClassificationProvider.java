@@ -28,9 +28,16 @@ public class TensorflowClassificationProvider implements ClassificationProvider 
 
     @Override
     public void onDataChanged(float[][][] sensorData) {
-        ActivityClassifier.Activity classification = classifier.classify(sensorData);
+        // get the probability vector
+        float[] probs = classifier.getProbabilities(sensorData);
+        // get the activity classification based on the probability vector
+        ActivityClassifier.Activity classification = classifier.classify(probs);
 
+        // update each listener with the new data
         for(ClassificationListener listener : classificationListenerList) {
+            // update probability info
+            listener.onProbabilitiesChanged(probs);
+            // update final classification
             listener.onClassificationChanged(classification);
         }
     }

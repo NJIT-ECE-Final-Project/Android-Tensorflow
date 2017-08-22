@@ -177,4 +177,9 @@
         </LinearLayout>
     </LinearLayout>
 
+    <ListView
+        android:id="@+id/classification_probabilities"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"></ListView>
+
 </LinearLayout>
