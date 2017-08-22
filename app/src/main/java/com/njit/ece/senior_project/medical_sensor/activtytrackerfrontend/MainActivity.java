@@ -131,7 +131,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         float[] accel_filtered = new float[3];
 
         for(int i = 0; i < 3; i++) {
-            accel[i] = accel[i]/9.81f; //normalize units to gs
             Log.d("Acceleration", accel[i]+"");
             accel_filtered[i] = (float) highPassFilters[i].getNextDataPoint(accel[i]);
         }
