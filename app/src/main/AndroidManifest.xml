@@ -12,6 +12,7 @@
         <activity android:name=".DeviceScanActivity"></activity>
         <activity android:name=".DeviceSelectActivity"></activity>
         <activity android:name=".SerialConsoleActivity"></activity>
+        <activity android:name=".DeviceSelectActivityForListenerTest"/>
 
         <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
         <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
