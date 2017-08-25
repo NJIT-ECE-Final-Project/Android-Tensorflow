@@ -25,6 +25,7 @@ public class SelectorActivity extends AppCompatActivity {
     static {
         // populate a list of all the activities we can launch from this activity
         activityList.put("View Raw Sensor Data", MainActivity.class);
+        activityList.put("Pair a Bluetooth Device", DeviceSelectActivity.class);
         // get a list of all the names of those activies, to drive the list view
         activityNames = new ArrayList<>(activityList.keySet());
     }
