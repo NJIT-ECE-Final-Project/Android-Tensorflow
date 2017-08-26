@@ -56,11 +56,11 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
             // this matches the format for the serial data
             float dataValues[] = new float[NUM_AXES];
 
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < NUM_AXES; i++) {
 
                 //convert the hex to float
                 byte[] rawData = DataHelper.hexStringToByteArray(splitString[i]);
-                    float myfloatvalue = ByteBuffer.wrap(rawData).getFloat();
+                float myfloatvalue = ByteBuffer.wrap(rawData).getFloat();
                 dataValues[i] = myfloatvalue;
             }
 
