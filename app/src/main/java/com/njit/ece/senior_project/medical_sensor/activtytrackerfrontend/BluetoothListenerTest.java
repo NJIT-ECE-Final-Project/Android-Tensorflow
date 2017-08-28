@@ -20,17 +20,12 @@ public class BluetoothListenerTest extends AppCompatActivity  implements Bluetoo
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth_listener_test);
 
         Bluetooth b = new Bluetooth(this);
         b.enableBluetooth();
-
-        messageProvider = new BluetoothMessageProviderImpl(b);
-        messageProvider.addBluetoothMessageListener(this);
-
-        BluetoothSensorDataProvider btDataProvider = new BluetoothSensorDataProvider(b);
-        btDataProvider.addRawDataListener(this);
 
 
         //b.setCommunicationCallback(messageProvider);
@@ -38,17 +33,29 @@ public class BluetoothListenerTest extends AppCompatActivity  implements Bluetoo
         // get the paired item
         int pos = getIntent().getExtras().getInt("pos");
         String name = b.getPairedDevices().get(pos).getName();
-
+        // connect to device
         b.connectToDevice(b.getPairedDevices().get(pos));
+
+
+        messageProvider = new BluetoothMessageProviderImpl(b);
+        messageProvider.addBluetoothMessageListener(this);
+
+        BluetoothSensorDataProvider btDataProvider = new BluetoothSensorDataProvider(messageProvider);
+        btDataProvider.addRawDataListener(this);
 
     }
 
     @Override
     public void onMessageChanged(final String message) {
+        // do nothing
+    }
+
+    @Override
+    public void onStatusChanged(final String status) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ((TextView) findViewById(R.id.bluetooth_message)).setText(message);
+                updateStatusText(status);
             }
         });
     }
@@ -74,6 +81,10 @@ public class BluetoothListenerTest extends AppCompatActivity  implements Bluetoo
         ((TextView)this.findViewById(R.id.total_acc_x)).setText(Float.toString(accel[0]));
         ((TextView)this.findViewById(R.id.total_acc_y)).setText(Float.toString(accel[1]));
         ((TextView)this.findViewById(R.id.total_acc_z)).setText(Float.toString(accel[2]));
+    }
+
+    private void updateStatusText(String status) {
+        ((TextView) findViewById(R.id.bluetooth_status)).setText(status);
     }
 
 }

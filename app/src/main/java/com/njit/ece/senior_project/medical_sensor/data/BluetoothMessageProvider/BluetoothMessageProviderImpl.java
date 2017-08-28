@@ -19,7 +19,9 @@ public class BluetoothMessageProviderImpl implements BluetoothMessageProvider {
     List<BluetoothMessageListener> listenerList = new ArrayList<>();
 
     public BluetoothMessageProviderImpl(Bluetooth bluetooth) {
+        Log.d(TAG, "Creating new message listener for: " + bluetooth.getDevice().getName());
         this.bluetooth = bluetooth;
+        bluetooth.setCommunicationCallback(this);
     }
 
     private static final String TAG = BluetoothMessageProviderImpl.class.getSimpleName();
@@ -27,6 +29,8 @@ public class BluetoothMessageProviderImpl implements BluetoothMessageProvider {
     @Override
     public void onConnect(BluetoothDevice device) {
         Log.i(TAG, "Device connected: " + device.getName());
+
+        updateStatus("Connected");
     }
 
     @Override
@@ -34,6 +38,8 @@ public class BluetoothMessageProviderImpl implements BluetoothMessageProvider {
         Log.i(TAG, "Device disconnected: " + device.getName() + "\nMessage: " + message);
         Log.i(TAG, "Attempting to reconnect");
         bluetooth.connectToDevice(device);
+
+        updateStatus("Disconnected");
     }
 
     @Override
@@ -48,11 +54,15 @@ public class BluetoothMessageProviderImpl implements BluetoothMessageProvider {
     @Override
     public void onError(String message) {
         Log.w(TAG, "Error with bluetooth: " + message);
+
+        updateStatus("Error");
     }
 
     @Override
     public void onConnectError(BluetoothDevice device, String message) {
         Log.e(TAG, "Connection error: " + message + " for device " + device.getName());
+
+        updateStatus("ConnectError");
 
         // TODO: reconnect
     }
@@ -60,5 +70,11 @@ public class BluetoothMessageProviderImpl implements BluetoothMessageProvider {
     @Override
     public void addBluetoothMessageListener(BluetoothMessageListener listener) {
         this.listenerList.add(listener);
+    }
+
+    private void updateStatus(String status) {
+        for(BluetoothMessageListener listener : listenerList) {
+            listener.onStatusChanged(status);
+        }
     }
 }

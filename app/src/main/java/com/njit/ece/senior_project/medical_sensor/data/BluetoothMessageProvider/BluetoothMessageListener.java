@@ -8,4 +8,6 @@ public interface BluetoothMessageListener {
 
     void onMessageChanged(String message);
 
+    void onStatusChanged(String status);
+
 }

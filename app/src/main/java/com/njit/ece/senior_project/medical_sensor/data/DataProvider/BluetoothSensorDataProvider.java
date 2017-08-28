@@ -28,21 +28,11 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
     List<RawDataListener> dataListenerList = new ArrayList<>();
     //List<SensorEventListener> sensorEventListenerList;
 
-    public BluetoothSensorDataProvider(Bluetooth bluetooth) {
-        messageProvider = new BluetoothMessageProviderImpl(bluetooth);
-        messageProvider.addBluetoothMessageListener(this);
-        bluetooth.setCommunicationCallback(messageProvider);
-    }
-
-
-    /**
-     * Optional override to use a different message provider, just for fun
-     * @param provider
-     */
-    public void setMessageProvider(BluetoothMessageProvider provider) {
-        this.messageProvider = provider;
+    public BluetoothSensorDataProvider(BluetoothMessageProvider provider) {
         provider.addBluetoothMessageListener(this);
     }
+
+
 
     @Override
     public void onMessageChanged(String message) {
@@ -50,7 +40,7 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
 
         String[] splitString = message.split(",");
 
-        if (splitString.length != NUM_AXES) {
+        if(splitString.length != NUM_AXES) {
             // TODO: how to handle messages other than data messages?
         } else {
             // this matches the format for the serial data
@@ -81,6 +71,11 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
                 listener.onRawDataChanged(dataEvent);
             }
         }
+    }
+
+    @Override
+    public void onStatusChanged(String status) {
+        // do nothing for now
     }
 
     @Override
