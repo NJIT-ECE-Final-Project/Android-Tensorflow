@@ -65,7 +65,8 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
                 }
             }
 
-            DataEvent dataEvent = new DataEvent(accel, gyro);
+            //TODO filter
+            DataEvent dataEvent = new DataEvent(accel, accel, gyro);
 
             for(RawDataListener listener : dataListenerList) {
                 listener.onRawDataChanged(dataEvent);

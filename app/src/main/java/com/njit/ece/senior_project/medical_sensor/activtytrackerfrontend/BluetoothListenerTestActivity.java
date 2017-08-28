@@ -66,7 +66,7 @@ public class BluetoothListenerTestActivity extends AppCompatActivity  implements
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                updateAccelSensorTest(event.getAccel());
+                updateAccelSensorTest(event.getTotal_accel());
                 updateGyroSensorTest(event.getGyro());
             }
         });

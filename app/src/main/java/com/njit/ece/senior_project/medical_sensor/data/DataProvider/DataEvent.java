@@ -6,16 +6,22 @@ package com.njit.ece.senior_project.medical_sensor.data.DataProvider;
 
 public class DataEvent {
 
-    private float[] accel;
+    private float[] total_accel;
+    private float[] body_accel;
     private float[] gyro;
 
-    public DataEvent(float[] accel, float[] gyro) {
-        this.accel = accel;
+    public DataEvent(float[] total_accel, float[] body_accel, float[] gyro) {
+        this.total_accel = total_accel;
+        this.body_accel = body_accel;
         this.gyro = gyro;
     }
 
-    public float[] getAccel() {
-        return accel;
+    public float[] getTotal_accel() {
+        return total_accel;
+    }
+
+    public float[] getBody_accel() {
+        return body_accel;
     }
 
     public float[] getGyro() {

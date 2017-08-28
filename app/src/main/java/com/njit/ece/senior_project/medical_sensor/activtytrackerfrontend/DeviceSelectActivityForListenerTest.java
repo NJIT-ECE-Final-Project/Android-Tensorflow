@@ -27,7 +27,7 @@ import me.aflak.pulltorefresh.PullToRefresh;
 public class DeviceSelectActivityForListenerTest extends DeviceSelectActivity {
 
     private boolean registered=false;
-    
+
 
     protected void onDeviceSelected(int pos) {
         Intent i = new Intent(DeviceSelectActivityForListenerTest.this, BluetoothListenerTestActivity.class);

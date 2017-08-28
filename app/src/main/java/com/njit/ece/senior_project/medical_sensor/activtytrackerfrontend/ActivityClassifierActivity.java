@@ -2,13 +2,10 @@ package com.njit.ece.senior_project.medical_sensor.activtytrackerfrontend;
 
 import android.graphics.Typeface;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -18,29 +15,26 @@ import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.Cl
 import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.ClassificationProvider;
 import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.TensorflowClassificationProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.AndroidSensorDataProvider;
-import com.njit.ece.senior_project.medical_sensor.data.Filters.SimpleHighPass;
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.BufferedDataProvider;
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataEvent;
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataProvider;
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.RawDataListener;
 import com.njit.ece.senior_project.medical_sensor.data.SampleLoader.SampleDataLoader;
 import com.njit.ece.senior_project.medical_sensor.data.util.ArrayHelper;
 import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
 
 import java.io.File;
-import java.lang.reflect.Array;
 
 
-public class ActivityClassifierActivity extends AppCompatActivity implements SensorEventListener, ClassificationListener {
-
-    private File signalsFolder;
-
-    private int timeSteps = 128;
+public class ActivityClassifierActivity extends AppCompatActivity implements RawDataListener, ClassificationListener {
 
     private SensorManager sensorManager;
 
     private ActivityClassifier classifier;
 
-    private AndroidSensorDataProvider dataProvider = new AndroidSensorDataProvider();
+    private AndroidSensorDataProvider rawDataProvider;
     private ClassificationProvider classificationProvider;
 
-    private SimpleHighPass highPassFilters[] = new SimpleHighPass[3];
 
     private String classificationProbs[] = new String[ActivityClassifier.Activity.values().length];
 
@@ -57,15 +51,19 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Sen
         // get a sensor manager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        for(int i = 0; i < 3; i++) {
-            highPassFilters[i] = new SimpleHighPass();
-        }
+
+        rawDataProvider = new AndroidSensorDataProvider();
 
         // get updates of the sensor values for ourself to update the view
-        dataProvider.addSensorEventListener(this);
+        rawDataProvider.addRawDataListener(this);
 
+        // create a buffered data provider
+        DataProvider bufferedDataProvider = new BufferedDataProvider(rawDataProvider);
 
-        dataProvider.addDataListener(classificationProvider);
+        // pass buffered data directory to classifier
+        bufferedDataProvider.addDataListener(classificationProvider);
+
+        // pass clasification directly to this activity to display
         classificationProvider.addClassificationListener(this);
 
         // initialize classification list to show a ? for all probs
@@ -90,12 +88,12 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Sen
         super.onResume();
 
         // register a listener for the accelerometer data
-        sensorManager.registerListener(dataProvider,
+        sensorManager.registerListener(rawDataProvider,
                 sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                 SensorManager.SENSOR_DELAY_GAME); // game provides the desired 20 ms delay for 50Hz
 
         // register another listener for the gyroscope data
-        sensorManager.registerListener(dataProvider,
+        sensorManager.registerListener(rawDataProvider,
                 sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
                 SensorManager.SENSOR_DELAY_GAME); // game provides the desired 20 ms delay for 50Hz
 
@@ -124,57 +122,7 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Sen
     protected void onPause() {
         // unregister listener (for now don't do the classification while the App is paused)
         super.onPause();
-        sensorManager.unregisterListener(dataProvider);
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            // acceleromter data
-            updateAccelSensorText(event);
-        } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            updateGyroSensorTest(event);
-        }
-    }
-
-
-    private void updateGyroSensorTest(SensorEvent event) {
-
-        float[] gyro = event.values;
-
-        ((TextView)this.findViewById(R.id.gyro_x)).setText(Float.toString(gyro[0]));
-        ((TextView)this.findViewById(R.id.gyro_y)).setText(Float.toString(gyro[1]));
-        ((TextView)this.findViewById(R.id.gyro_z)).setText(Float.toString(gyro[2]));
-
-    }
-
-    private void updateAccelSensorText(SensorEvent event) {
-
-        float[] accel = event.values;
-
-        float[] accel_filtered = new float[3];
-
-        for(int i = 0; i < 3; i++) {
-            Log.d("Acceleration", accel[i]+"");
-            accel_filtered[i] = (float) highPassFilters[i].getNextDataPoint(accel[i]);
-        }
-
-        ((TextView)this.findViewById(R.id.total_acc_x)).setText(Float.toString(accel[0]));
-        ((TextView)this.findViewById(R.id.total_acc_y)).setText(Float.toString(accel[1]));
-        ((TextView)this.findViewById(R.id.total_acc_z)).setText(Float.toString(accel[2]));
-
-        ((TextView)this.findViewById(R.id.body_acc_x)).setText(Float.toString(accel_filtered[0]));
-        ((TextView)this.findViewById(R.id.body_acc_y)).setText(Float.toString(accel_filtered[1]));
-        ((TextView)this.findViewById(R.id.body_acc_z)).setText(Float.toString(accel_filtered[2]));
-
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-        // TODO: now sure what causes this to happen
-        Log.w("Sensors", "Accuraccy changed on " + sensor.getName());
-        Log.w("Sensors", "i = " + i);
+        sensorManager.unregisterListener(rawDataProvider);
     }
 
 
@@ -207,5 +155,25 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Sen
                 itemView.setTypeface(null, Typeface.BOLD);
             }
         }
+    }
+
+    @Override
+    public void onRawDataChanged(DataEvent event) {
+
+        float[] accel = event.getTotal_accel();
+        float[] accel_filtered = event.getBody_accel();
+        float[] gyro = event.getGyro();
+
+        ((TextView)this.findViewById(R.id.total_acc_x)).setText(Float.toString(accel[0]));
+        ((TextView)this.findViewById(R.id.total_acc_y)).setText(Float.toString(accel[1]));
+        ((TextView)this.findViewById(R.id.total_acc_z)).setText(Float.toString(accel[2]));
+
+        ((TextView)this.findViewById(R.id.body_acc_x)).setText(Float.toString(accel_filtered[0]));
+        ((TextView)this.findViewById(R.id.body_acc_y)).setText(Float.toString(accel_filtered[1]));
+        ((TextView)this.findViewById(R.id.body_acc_z)).setText(Float.toString(accel_filtered[2]));
+
+        ((TextView)this.findViewById(R.id.gyro_x)).setText(Float.toString(gyro[0]));
+        ((TextView)this.findViewById(R.id.gyro_y)).setText(Float.toString(gyro[1]));
+        ((TextView)this.findViewById(R.id.gyro_z)).setText(Float.toString(gyro[2]));
     }
 }

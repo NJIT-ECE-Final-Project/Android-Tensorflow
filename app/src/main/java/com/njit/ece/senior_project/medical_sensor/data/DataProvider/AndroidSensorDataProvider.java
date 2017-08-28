@@ -9,12 +9,14 @@ import com.njit.ece.senior_project.medical_sensor.data.Filters.SimpleHighPass;
 import com.njit.ece.senior_project.medical_sensor.data.SignalType;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * Data provider that provides data taken from android sensors
  */
-public class AndroidSensorDataProvider implements DataProvider, SensorEventListener {
+public class AndroidSensorDataProvider implements RawDataProvider, SensorEventListener {
 
     private int timeSteps = 128;
 
@@ -22,46 +24,41 @@ public class AndroidSensorDataProvider implements DataProvider, SensorEventListe
     private SimpleHighPass[] highPassFilters = new SimpleHighPass[3];
 
     // incremented until timesteps is reached
-    int accel_t = 0;
-    int gyro_t = 0;
-    float[][][] dataBuffer;
+    //int accel_t = 0;
+    //int gyro_t = 0;
+    //float[][][] dataBuffer;
 
 
-    private List<DataListener> dataListenerList;
-    private List<SensorEventListener> eventListenerList;
+    // maintain of queue because gyro is not garunteed to be provided in sync with accel
+    Queue<float[]> totalAccelQueue = new LinkedList<>();
+    Queue<float[]> bodyAccelQueue = new LinkedList<>();
+    Queue<float[]> gyroQueue = new LinkedList<>();
+
+    private List<RawDataListener> listeners = new ArrayList<>();
+    //private List<DataListener> dataListners = new ArrayList<>();
 
     public AndroidSensorDataProvider() {
 
-        dataListenerList = new ArrayList<>();
-        eventListenerList = new ArrayList<>();
 
         for(int i = 0; i < 3; i++) {
             highPassFilters[i] = new SimpleHighPass();
         }
 
-        dataBuffer = new float[1][timeSteps][SignalType.values().length];
-    }
-
-    @Override
-    public void addDataListener(DataListener listener) {
-        dataListenerList.add(listener);
-    }
-
-    @Override
-    public void addSensorEventListener(SensorEventListener listener) {
-        eventListenerList.add(listener);
+        //dataBuffer = new float[1][timeSteps][SignalType.values().length];
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
 
-        Log.d("Timestep", "accel_t: " + accel_t + " gyro_t: " + gyro_t);
+        //Log.d("Timestep", "accel_t: " + accel_t + " gyro_t: " + gyro_t);
 
+        /*
         if(accel_t == timeSteps && gyro_t == timeSteps) {
             provideData();
             accel_t = 0;
             gyro_t = 0;
         }
+        */
 
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             // acceleromter data
@@ -76,46 +73,59 @@ public class AndroidSensorDataProvider implements DataProvider, SensorEventListe
                 accel_filtered[i] = (float) highPassFilters[i].getNextDataPoint(accel[i]);
             }
 
-            if(accel_t < timeSteps) {
-                for(int i = 0; i < 3; i++) {
-                    dataBuffer[0][accel_t][i] = accel_filtered[i];
-                    dataBuffer[0][accel_t][i + 6] = accel[i];
-                }
-                accel_t++;
-            }
+            // add data to buffer
+            //if(accel_t < timeSteps) {
+            //    for(int i = 0; i < 3; i++) {
+            //        dataBuffer[0][accel_t][i] = accel_filtered[i];
+            //        dataBuffer[0][accel_t][i + 6] = accel[i];
+            //    }
+            //    accel_t++;
+            //}
+
+            // add data to queue as well
+            totalAccelQueue.add(accel);
+            bodyAccelQueue.add(accel_filtered);
 
         } else if (sensorEvent.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
 
             float[] gyro = sensorEvent.values;
 
-            if(gyro_t < timeSteps) {
-                for(int i = 0; i < 3; i++) {
-                    dataBuffer[0][gyro_t][i + 3] = gyro[i];
-                }
-                gyro_t++;
-            }
+            //if(gyro_t < timeSteps) {
+            //    for(int i = 0; i < 3; i++) {
+            //        dataBuffer[0][gyro_t][i + 3] = gyro[i];
+            //    }
+            //    gyro_t++;
+            //}
+
+            gyroQueue.add(gyro);
         }
 
-        // update all child listeners
-        for(SensorEventListener listener : eventListenerList) {
-            listener.onSensorChanged(sensorEvent);
+        if(totalAccelQueue.size() > 0 && bodyAccelQueue.size() > 0 && gyroQueue.size() > 0) {
+            DataEvent newData = new DataEvent(
+                    totalAccelQueue.remove(),
+                    bodyAccelQueue.remove(),
+                    gyroQueue.remove());
+
+            provideRawData(newData);
         }
     }
 
-    private void provideData() {
 
-        Log.d("DataProvider", "Providing data");
-
-        for(DataListener dataListener : dataListenerList) {
-            dataListener.onDataChanged(dataBuffer);
+    private void provideRawData(DataEvent newData) {
+        for(RawDataListener listener : listeners) {
+            listener.onRawDataChanged(newData);
         }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
-        // update all child listeners
-        for(SensorEventListener listener : eventListenerList) {
-            listener.onAccuracyChanged(sensor, i);
-        }
+        //TODO what to do?
     }
+
+
+    @Override
+    public void addRawDataListener(RawDataListener listener) {
+        listeners.add(listener);
+    }
+
 }
