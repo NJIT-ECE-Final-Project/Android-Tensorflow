@@ -55,14 +55,7 @@ public class DeviceSelectActivity extends Activity implements PullToRefresh.OnRe
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent i = new Intent(DeviceSelectActivity.this, SerialConsoleActivity.class);
-                i.putExtra("pos", position);
-                if(registered) {
-                    unregisterReceiver(mReceiver);
-                    registered=false;
-                }
-                startActivity(i);
-                finish();
+                onDeviceSelected(position);
             }
         });
 
@@ -124,7 +117,7 @@ public class DeviceSelectActivity extends Activity implements PullToRefresh.OnRe
         not_found.setEnabled(true);
     }
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    protected final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
@@ -155,4 +148,15 @@ public class DeviceSelectActivity extends Activity implements PullToRefresh.OnRe
             }
         }
     };
+
+    protected void onDeviceSelected(int pos) {
+        Intent i = new Intent(DeviceSelectActivity.this, SerialConsoleActivity.class);
+        i.putExtra("pos", pos);
+        if(registered) {
+            unregisterReceiver(mReceiver);
+            registered=false;
+        }
+        startActivity(i);
+        finish();
+    }
 }

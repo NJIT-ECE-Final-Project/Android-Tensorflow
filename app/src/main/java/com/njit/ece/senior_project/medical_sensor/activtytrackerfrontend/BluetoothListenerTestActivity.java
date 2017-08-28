@@ -14,7 +14,7 @@ import com.njit.ece.senior_project.medical_sensor.data.DataProvider.RawDataListe
 
 import me.aflak.bluetooth.Bluetooth;
 
-public class BluetoothListenerTest extends AppCompatActivity  implements BluetoothMessageListener, RawDataListener {
+public class BluetoothListenerTestActivity extends AppCompatActivity  implements BluetoothMessageListener, RawDataListener {
 
     BluetoothMessageProvider messageProvider;
 
@@ -27,6 +27,11 @@ public class BluetoothListenerTest extends AppCompatActivity  implements Bluetoo
         Bluetooth b = new Bluetooth(this);
         b.enableBluetooth();
 
+        // setup callbacks to get asynchronous updates on connection status and sensor data
+        messageProvider = new BluetoothMessageProviderImpl(b);
+        messageProvider.addBluetoothMessageListener(this);
+        BluetoothSensorDataProvider btDataProvider = new BluetoothSensorDataProvider(messageProvider);
+        btDataProvider.addRawDataListener(this);
 
         //b.setCommunicationCallback(messageProvider);
 
@@ -37,11 +42,7 @@ public class BluetoothListenerTest extends AppCompatActivity  implements Bluetoo
         b.connectToDevice(b.getPairedDevices().get(pos));
 
 
-        messageProvider = new BluetoothMessageProviderImpl(b);
-        messageProvider.addBluetoothMessageListener(this);
 
-        BluetoothSensorDataProvider btDataProvider = new BluetoothSensorDataProvider(messageProvider);
-        btDataProvider.addRawDataListener(this);
 
     }
 

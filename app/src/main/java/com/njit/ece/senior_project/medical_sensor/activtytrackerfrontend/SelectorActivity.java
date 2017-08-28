@@ -24,7 +24,7 @@ public class SelectorActivity extends AppCompatActivity {
 
     static {
         // populate a list of all the activities we can launch from this activity
-        activityList.put("View Raw Sensor Data", MainActivity.class);
+        activityList.put("View Raw Sensor Data", ActivityClassifierActivity.class);
         activityList.put("Serial Console", DeviceSelectActivity.class);
         activityList.put("Message Listener Test", DeviceSelectActivityForListenerTest.class);
         // get a list of all the names of those activies, to drive the list view

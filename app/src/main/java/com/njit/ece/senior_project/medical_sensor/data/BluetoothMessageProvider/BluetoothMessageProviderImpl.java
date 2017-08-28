@@ -5,6 +5,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import me.aflak.bluetooth.Bluetooth;
 
@@ -16,10 +17,14 @@ public class BluetoothMessageProviderImpl implements BluetoothMessageProvider {
 
     private Bluetooth bluetooth;
 
-    List<BluetoothMessageListener> listenerList = new ArrayList<>();
+    private List<BluetoothMessageListener> listenerList = new ArrayList<>();
 
     public BluetoothMessageProviderImpl(Bluetooth bluetooth) {
-        Log.d(TAG, "Creating new message listener for: " + bluetooth.getDevice().getName());
+
+        BluetoothDevice device = bluetooth.getDevice();
+        String deviceName = device != null ? device.getName() : "Unknown Device";
+
+        Log.d(TAG, "Creating new message listener for: " + deviceName);
         this.bluetooth = bluetooth;
         bluetooth.setCommunicationCallback(this);
     }

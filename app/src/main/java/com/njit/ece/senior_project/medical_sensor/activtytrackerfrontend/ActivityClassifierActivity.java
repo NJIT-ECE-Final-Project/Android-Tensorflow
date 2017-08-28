@@ -27,7 +27,7 @@ import java.io.File;
 import java.lang.reflect.Array;
 
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener, ClassificationListener {
+public class ActivityClassifierActivity extends AppCompatActivity implements SensorEventListener, ClassificationListener {
 
     private File signalsFolder;
 
