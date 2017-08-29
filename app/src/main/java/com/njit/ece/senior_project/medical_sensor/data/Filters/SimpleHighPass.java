@@ -1,10 +1,8 @@
 package com.njit.ece.senior_project.medical_sensor.data.Filters;
 
 /**
- * Smooths data sent to it by averaging over an interval and returning the average once
- * the interval is over
- *
- * Also performs a high pass on the data
+ * A simple high pass filter with a cuttoff frequency designed to
+ * filter gravity out of accelerometer readings.
  */
 public class SimpleHighPass {
 

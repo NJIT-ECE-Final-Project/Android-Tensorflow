@@ -12,6 +12,7 @@ import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 public class ActivityClassifier {
 
     static {
+        // necessary to load the C++ tensorflow library via JNI
         System.loadLibrary("tensorflow_inference");
     }
 

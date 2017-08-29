@@ -22,6 +22,10 @@ import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataEvent;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.RawDataListener;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.RawDataProvider;
+import com.njit.ece.senior_project.medical_sensor.data.FallDetector.ActivityClassificationFallDetector;
+import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallDetector;
+import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallEvent;
+import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallListener;
 import com.njit.ece.senior_project.medical_sensor.data.SampleLoader.SampleDataLoader;
 import com.njit.ece.senior_project.medical_sensor.data.util.ArrayHelper;
 import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
@@ -31,7 +35,7 @@ import java.io.File;
 import me.aflak.bluetooth.Bluetooth;
 
 
-public class ActivityClassifierActivity extends AppCompatActivity implements RawDataListener, ClassificationListener {
+public class ActivityClassifierActivity extends AppCompatActivity implements RawDataListener, ClassificationListener, FallListener {
 
     private ActivityClassifier classifier;
 
@@ -97,6 +101,11 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
         final ListView classificationProbView = (ListView) findViewById(R.id.classification_probabilities);
         classficationProbsAdaptor = new ArrayAdapter<>(this, R.layout.layout_list_item, classificationProbs);
         classificationProbView.setAdapter(classficationProbsAdaptor);
+
+
+        // create a fall detector which uses the classification provider and raw data provider
+        FallDetector fallDetector = new ActivityClassificationFallDetector(classificationProvider, rawDataProvider);
+        fallDetector.addFallListener(this);
 
     }
 
@@ -210,5 +219,10 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
                 ((TextView) ActivityClassifierActivity.this.findViewById(R.id.gyro_z)).setText(Float.toString(gyro[2]));
             }
         });
+    }
+
+    @Override
+    public void onFallDetected(FallEvent event) {
+        ((TextView) findViewById(R.id.last_fall_time)).setText(event.getFallTime().toString());
     }
 }

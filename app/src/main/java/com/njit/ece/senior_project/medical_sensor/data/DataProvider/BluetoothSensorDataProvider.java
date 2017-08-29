@@ -16,9 +16,9 @@ import java.util.List;
 import me.aflak.bluetooth.Bluetooth;
 
 /**
- * Created by David Etler on 8/25/2017.
+ * Provides raw data taken from the Bluetooth module, by parsing each of the messages sent via
+ * the bluetooth module
  */
-
 public class BluetoothSensorDataProvider implements BluetoothMessageListener, RawDataProvider {
 
     private static final int NUM_AXES = 6;

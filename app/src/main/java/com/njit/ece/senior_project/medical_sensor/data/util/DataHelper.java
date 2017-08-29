@@ -1,9 +1,8 @@
 package com.njit.ece.senior_project.medical_sensor.data.util;
 
 /**
- * Created by David Etler on 8/25/2017.
+ * A utility class with helpful functions for converting between data types
  */
-
 public class DataHelper {
 
     public static byte[] hexStringToByteArray(String s) {
@@ -14,6 +13,15 @@ public class DataHelper {
                     + Character.digit(s.charAt(i+1), 16));
         }
         return data;
+    }
+
+
+    public static double magnitude(float[] v) {
+        int norm = 0;
+        for(int i = 0; i < v.length; i++) {
+            norm += v[i] * v[i];
+        }
+        return Math.sqrt(norm);
     }
 
 }

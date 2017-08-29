@@ -1,7 +1,7 @@
 package com.njit.ece.senior_project.medical_sensor.data.util;
 
 /**
- * Created by hp- on 8/6/2017.
+ * Array helper with useful functions for doing math with arrays
  */
 public class ArrayHelper {
 
@@ -24,6 +24,7 @@ public class ArrayHelper {
         return out;
     }
 
+
     public static int indexOfMax(float[] array) {
         int maxIndex = 0;
         for(int i = 0; i < array.length; i++) {
@@ -33,4 +34,19 @@ public class ArrayHelper {
         }
         return maxIndex;
     }
+
+
+    public static double maxValue(double[] array) {
+        double maxVal = Double.MIN_VALUE;
+
+        for(int i = 0; i < array.length; i++) {
+            if(array[i] > maxVal) {
+                maxVal = array[i];
+            }
+        }
+
+        return maxVal;
+    }
+
+
 }

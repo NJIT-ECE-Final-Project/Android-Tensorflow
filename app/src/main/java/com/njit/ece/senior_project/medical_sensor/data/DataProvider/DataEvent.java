@@ -1,9 +1,8 @@
 package com.njit.ece.senior_project.medical_sensor.data.DataProvider;
 
 /**
- * Created by David Etler on 8/25/2017.
+ * Rerepresents a single reading from the motion sensor
  */
-
 public class DataEvent {
 
     private float[] total_accel;
