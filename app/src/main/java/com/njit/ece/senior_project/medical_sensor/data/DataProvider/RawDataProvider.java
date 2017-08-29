@@ -8,4 +8,9 @@ public interface RawDataProvider {
 
     void addRawDataListener(RawDataListener listener);
 
+    void pause();
+
+    void resume();
+
+    void destroy();
 }

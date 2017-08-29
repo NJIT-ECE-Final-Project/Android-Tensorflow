@@ -3,6 +3,7 @@ package com.njit.ece.senior_project.medical_sensor.data.DataProvider;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.util.Log;
 
 import com.njit.ece.senior_project.medical_sensor.data.Filters.SimpleHighPass;
@@ -23,10 +24,7 @@ public class AndroidSensorDataProvider implements RawDataProvider, SensorEventLi
     // one high-pass filter per accelerometer axis
     private SimpleHighPass[] highPassFilters = new SimpleHighPass[3];
 
-    // incremented until timesteps is reached
-    //int accel_t = 0;
-    //int gyro_t = 0;
-    //float[][][] dataBuffer;
+    private SensorManager sensorManager;
 
 
     // maintain of queue because gyro is not garunteed to be provided in sync with accel
@@ -37,28 +35,17 @@ public class AndroidSensorDataProvider implements RawDataProvider, SensorEventLi
     private List<RawDataListener> listeners = new ArrayList<>();
     //private List<DataListener> dataListners = new ArrayList<>();
 
-    public AndroidSensorDataProvider() {
+    public AndroidSensorDataProvider(SensorManager sensorManager) {
 
+        this.sensorManager = sensorManager;
 
         for(int i = 0; i < 3; i++) {
             highPassFilters[i] = new SimpleHighPass();
         }
-
-        //dataBuffer = new float[1][timeSteps][SignalType.values().length];
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-
-        //Log.d("Timestep", "accel_t: " + accel_t + " gyro_t: " + gyro_t);
-
-        /*
-        if(accel_t == timeSteps && gyro_t == timeSteps) {
-            provideData();
-            accel_t = 0;
-            gyro_t = 0;
-        }
-        */
 
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             // acceleromter data
@@ -73,15 +60,6 @@ public class AndroidSensorDataProvider implements RawDataProvider, SensorEventLi
                 accel_filtered[i] = (float) highPassFilters[i].getNextDataPoint(accel[i]);
             }
 
-            // add data to buffer
-            //if(accel_t < timeSteps) {
-            //    for(int i = 0; i < 3; i++) {
-            //        dataBuffer[0][accel_t][i] = accel_filtered[i];
-            //        dataBuffer[0][accel_t][i + 6] = accel[i];
-            //    }
-            //    accel_t++;
-            //}
-
             // add data to queue as well
             totalAccelQueue.add(accel);
             bodyAccelQueue.add(accel_filtered);
@@ -89,13 +67,6 @@ public class AndroidSensorDataProvider implements RawDataProvider, SensorEventLi
         } else if (sensorEvent.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
 
             float[] gyro = sensorEvent.values;
-
-            //if(gyro_t < timeSteps) {
-            //    for(int i = 0; i < 3; i++) {
-            //        dataBuffer[0][gyro_t][i + 3] = gyro[i];
-            //    }
-            //    gyro_t++;
-            //}
 
             gyroQueue.add(gyro);
         }
@@ -126,6 +97,31 @@ public class AndroidSensorDataProvider implements RawDataProvider, SensorEventLi
     @Override
     public void addRawDataListener(RawDataListener listener) {
         listeners.add(listener);
+    }
+
+    @Override
+    public void pause() {
+        sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    public void resume() {
+
+        // register a listener for the accelerometer data
+        sensorManager.registerListener(this,
+                sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                SensorManager.SENSOR_DELAY_GAME); // game provides the desired 20 ms delay for 50Hz
+
+        // register another listener for the gyroscope data
+        sensorManager.registerListener(this,
+                sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
+                SensorManager.SENSOR_DELAY_GAME); // game provides the desired 20 ms delay for 50Hz
+
+    }
+
+    @Override
+    public void destroy() {
+        pause();
     }
 
 }

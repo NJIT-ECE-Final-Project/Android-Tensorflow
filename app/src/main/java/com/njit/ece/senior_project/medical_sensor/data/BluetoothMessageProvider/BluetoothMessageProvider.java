@@ -10,4 +10,5 @@ public interface BluetoothMessageProvider extends Bluetooth.CommunicationCallbac
 
     void addBluetoothMessageListener(BluetoothMessageListener listener);
 
+    void destroy();
 }

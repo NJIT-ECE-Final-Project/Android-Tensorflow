@@ -11,34 +11,38 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.njit.ece.senior_project.medical_sensor.activtytrackerfrontend.util.ViewUtil;
+import com.njit.ece.senior_project.medical_sensor.data.BluetoothMessageProvider.BluetoothMessageProviderImpl;
 import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.ClassificationListener;
 import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.ClassificationProvider;
 import com.njit.ece.senior_project.medical_sensor.data.ClassificationProvider.TensorflowClassificationProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.AndroidSensorDataProvider;
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.BluetoothSensorDataProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.BufferedDataProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataEvent;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.RawDataListener;
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.RawDataProvider;
 import com.njit.ece.senior_project.medical_sensor.data.SampleLoader.SampleDataLoader;
 import com.njit.ece.senior_project.medical_sensor.data.util.ArrayHelper;
 import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
 
 import java.io.File;
 
+import me.aflak.bluetooth.Bluetooth;
+
 
 public class ActivityClassifierActivity extends AppCompatActivity implements RawDataListener, ClassificationListener {
 
-    private SensorManager sensorManager;
-
     private ActivityClassifier classifier;
 
-    private AndroidSensorDataProvider rawDataProvider;
+    private RawDataProvider rawDataProvider;
     private ClassificationProvider classificationProvider;
 
 
     private String classificationProbs[] = new String[ActivityClassifier.Activity.values().length];
 
     private ArrayAdapter<String> classficationProbsAdaptor;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,11 +52,26 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
         classifier = new ActivityClassifier(this, "file:///android_asset/frozen_har_new.pb");
         classificationProvider = new TensorflowClassificationProvider(this,  "file:///android_asset/frozen_har_new.pb");
 
-        // get a sensor manager
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
+        String source = getIntent().getExtras().getString("Source");
+        if(source.equals("Android")) {
+            rawDataProvider = new AndroidSensorDataProvider((SensorManager) getSystemService(SENSOR_SERVICE));
+        } else if(source.equals("Bluetooth")) {
+            Bluetooth b = new Bluetooth(this);
+            b.enableBluetooth();
 
-        rawDataProvider = new AndroidSensorDataProvider();
+            // get the paired item
+            int pos = getIntent().getExtras().getInt("pos");
+            String name = b.getPairedDevices().get(pos).getName();
+            // connect to device
+            b.connectToDevice(b.getPairedDevices().get(pos));
+
+            rawDataProvider = new BluetoothSensorDataProvider(new BluetoothMessageProviderImpl(b));
+
+        } else {
+            throw new IllegalStateException("You need to select a data source!");
+        }
+
 
         // get updates of the sensor values for ourself to update the view
         rawDataProvider.addRawDataListener(this);
@@ -87,15 +106,7 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
 
         super.onResume();
 
-        // register a listener for the accelerometer data
-        sensorManager.registerListener(rawDataProvider,
-                sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_GAME); // game provides the desired 20 ms delay for 50Hz
-
-        // register another listener for the gyroscope data
-        sensorManager.registerListener(rawDataProvider,
-                sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-                SensorManager.SENSOR_DELAY_GAME); // game provides the desired 20 ms delay for 50Hz
+        rawDataProvider.resume();
 
         // test the classifier with the test data (for debugging)
         try {
@@ -122,19 +133,32 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
     protected void onPause() {
         // unregister listener (for now don't do the classification while the App is paused)
         super.onPause();
-        sensorManager.unregisterListener(rawDataProvider);
+
+        rawDataProvider.pause();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        rawDataProvider.destroy();
+    }
 
     @Override
-    public void onClassificationChanged(ActivityClassifier.Activity newClassification) {
-        ((TextView) this.findViewById(R.id.activity_label)).setText(newClassification.toString());
+    public void onClassificationChanged(final ActivityClassifier.Activity newClassification) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.activity_label)).setText(newClassification.toString());
+            }
+        });
 
         Log.d("Classification", "Classification is: " + newClassification);
     }
 
     @Override
-    public void onProbabilitiesChanged(float[] probabilities) {
+    public void onProbabilitiesChanged(final float[] probabilities) {
 
         for(int i = 0; i < probabilities.length; i++) {
             ActivityClassifier.Activity activity = classifier.activityFromInt(i + 1 /*arrays start at 0*/);
@@ -142,38 +166,49 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
         }
 
         // refresh the list
-        classficationProbsAdaptor.notifyDataSetChanged();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                classficationProbsAdaptor.notifyDataSetChanged();
 
-        // make the activity which is most likely bold
-        ListView probListView = (ListView) findViewById(R.id.classification_probabilities);
-        for(int i = 0; i < probListView.getCount(); i++) {
-            TextView itemView = (TextView) ViewUtil.getViewByPosition(i, probListView);
+                // make the activity which is most likely bold
+                ListView probListView = (ListView) findViewById(R.id.classification_probabilities);
+                for(int i = 0; i < probListView.getCount(); i++) {
+                    TextView itemView = (TextView) ViewUtil.getViewByPosition(i, probListView);
 
-            if(i != ArrayHelper.indexOfMax(probabilities)) {
-                itemView.setTypeface(null, Typeface.NORMAL);
-            } else {
-                itemView.setTypeface(null, Typeface.BOLD);
+                    if(i != ArrayHelper.indexOfMax(probabilities)) {
+                        itemView.setTypeface(null, Typeface.NORMAL);
+                    } else {
+                        itemView.setTypeface(null, Typeface.BOLD);
+                    }
+                }
             }
-        }
+        });
+
     }
 
     @Override
     public void onRawDataChanged(DataEvent event) {
 
-        float[] accel = event.getTotal_accel();
-        float[] accel_filtered = event.getBody_accel();
-        float[] gyro = event.getGyro();
+        final float[] accel = event.getTotal_accel();
+        final float[] accel_filtered = event.getBody_accel();
+        final float[] gyro = event.getGyro();
 
-        ((TextView)this.findViewById(R.id.total_acc_x)).setText(Float.toString(accel[0]));
-        ((TextView)this.findViewById(R.id.total_acc_y)).setText(Float.toString(accel[1]));
-        ((TextView)this.findViewById(R.id.total_acc_z)).setText(Float.toString(accel[2]));
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.total_acc_x)).setText(Float.toString(accel[0]));
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.total_acc_y)).setText(Float.toString(accel[1]));
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.total_acc_z)).setText(Float.toString(accel[2]));
 
-        ((TextView)this.findViewById(R.id.body_acc_x)).setText(Float.toString(accel_filtered[0]));
-        ((TextView)this.findViewById(R.id.body_acc_y)).setText(Float.toString(accel_filtered[1]));
-        ((TextView)this.findViewById(R.id.body_acc_z)).setText(Float.toString(accel_filtered[2]));
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.body_acc_x)).setText(Float.toString(accel_filtered[0]));
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.body_acc_y)).setText(Float.toString(accel_filtered[1]));
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.body_acc_z)).setText(Float.toString(accel_filtered[2]));
 
-        ((TextView)this.findViewById(R.id.gyro_x)).setText(Float.toString(gyro[0]));
-        ((TextView)this.findViewById(R.id.gyro_y)).setText(Float.toString(gyro[1]));
-        ((TextView)this.findViewById(R.id.gyro_z)).setText(Float.toString(gyro[2]));
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.gyro_x)).setText(Float.toString(gyro[0]));
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.gyro_y)).setText(Float.toString(gyro[1]));
+                ((TextView) ActivityClassifierActivity.this.findViewById(R.id.gyro_z)).setText(Float.toString(gyro[2]));
+            }
+        });
     }
 }

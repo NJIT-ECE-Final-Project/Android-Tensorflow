@@ -40,10 +40,12 @@ public class BluetoothListenerTestActivity extends AppCompatActivity  implements
         String name = b.getPairedDevices().get(pos).getName();
         // connect to device
         b.connectToDevice(b.getPairedDevices().get(pos));
+    }
 
-
-
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        messageProvider.destroy();
     }
 
     @Override

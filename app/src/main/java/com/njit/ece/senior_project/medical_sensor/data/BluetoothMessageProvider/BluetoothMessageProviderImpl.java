@@ -5,7 +5,6 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import me.aflak.bluetooth.Bluetooth;
 
@@ -54,6 +53,8 @@ public class BluetoothMessageProviderImpl implements BluetoothMessageProvider {
         for(BluetoothMessageListener listener : listenerList) {
             listener.onMessageChanged(message);
         }
+
+        bluetooth.send("I got it!");
     }
 
     @Override
@@ -75,6 +76,11 @@ public class BluetoothMessageProviderImpl implements BluetoothMessageProvider {
     @Override
     public void addBluetoothMessageListener(BluetoothMessageListener listener) {
         this.listenerList.add(listener);
+    }
+
+    @Override
+    public void destroy() {
+        bluetooth.disconnect();
     }
 
     private void updateStatus(String status) {

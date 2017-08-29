@@ -30,6 +30,8 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
 
     public BluetoothSensorDataProvider(BluetoothMessageProvider provider) {
         provider.addBluetoothMessageListener(this);
+
+        this.messageProvider = provider;
     }
 
 
@@ -83,4 +85,21 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
     public void addRawDataListener(RawDataListener listener) {
         dataListenerList.add(listener);
     }
+
+    @Override
+    public void pause() {
+        //TODO implement pause
+    }
+
+    @Override
+    public void resume() {
+        //TODO implement resume
+    }
+
+    @Override
+    public void destroy() {
+        messageProvider.destroy();
+    }
+
+
 }

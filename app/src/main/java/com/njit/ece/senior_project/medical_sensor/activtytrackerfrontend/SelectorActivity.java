@@ -10,6 +10,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +26,8 @@ public class SelectorActivity extends AppCompatActivity {
 
     static {
         // populate a list of all the activities we can launch from this activity
-        activityList.put("View Raw Sensor Data", ActivityClassifierActivity.class);
+        activityList.put("Activity Classification (Phone Sensor Data)", ActivityClassifierActivity.class);
+        activityList.put("Activity Classification (Bluetooth Sensor Data)", DeviceSelectActivityForActivityClassifier.class);
         activityList.put("Serial Console", DeviceSelectActivity.class);
         activityList.put("Message Listener Test", DeviceSelectActivityForListenerTest.class);
         // get a list of all the names of those activies, to drive the list view
@@ -59,8 +62,14 @@ public class SelectorActivity extends AppCompatActivity {
                 if (selectedActivity != null) {
                     Log.d("SelectorActivity", "Starting activity: " + selection);
 
-                    // if the selection was valid, start the activity corresponding with the selection
                     Intent launcherIntent = new Intent(SelectorActivity.this, selectedActivity);
+
+                    if(selectedActivity == ActivityClassifierActivity.class) {
+                        // default data source to the android phone sensors
+                        launcherIntent.putExtra("Source", "Android");
+                    }
+
+                    // if the selection was valid, start the activity corresponding with the selection
                     startActivity(launcherIntent);
                 } else {
                     Log.e("SelectorActivity", selection + " does not have a corresponding entry!!!");

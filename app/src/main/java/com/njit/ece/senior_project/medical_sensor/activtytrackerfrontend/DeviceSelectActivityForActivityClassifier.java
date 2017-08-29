@@ -13,10 +13,9 @@ public class DeviceSelectActivityForActivityClassifier extends DeviceSelectActiv
 
     protected void onDeviceSelected(int pos) {
 
-        //TODO create a bluetooth data provider and pass in via the bundle
-
         Intent i = new Intent(DeviceSelectActivityForActivityClassifier.this, ActivityClassifierActivity.class);
         i.putExtra("pos", pos);
+        i.putExtra("Source", "Bluetooth");
         if(registered) {
             unregisterReceiver(mReceiver);
             registered=false;

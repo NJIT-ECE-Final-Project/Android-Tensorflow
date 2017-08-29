@@ -81,6 +81,7 @@ public class SerialConsoleActivity extends AppCompatActivity implements Bluetoot
             unregisterReceiver(mReceiver);
             registered=false;
         }
+        b.disconnect();
     }
 
 
@@ -95,7 +96,12 @@ public class SerialConsoleActivity extends AppCompatActivity implements Bluetoot
     }
 
     public void updateDataBuffer(final String s) {
-        ((TextView) findViewById(R.id.data_buffer)).setText(s);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) findViewById(R.id.data_buffer)).setText(s);
+            }
+        });
     }
 
     @Override
