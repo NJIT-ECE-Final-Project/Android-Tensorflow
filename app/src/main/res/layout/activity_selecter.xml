@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.njit.ece.senior_project.medical_sensor.activtytrackerfrontend.SelectorActivity">
+    tools:context="com.njit.ece.senior_project.medical_sensor.activtytrackerfrontend.Activities.SelectorActivity">
 
     <ListView
         android:id="@+id/activity_list"
