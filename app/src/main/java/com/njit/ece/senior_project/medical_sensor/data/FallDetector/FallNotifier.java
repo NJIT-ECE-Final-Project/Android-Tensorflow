@@ -61,6 +61,9 @@ public class FallNotifier implements FallListener {
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setSmallIcon(R.drawable.ic_warn_not)
+                .setContentTitle("Fall Detected")
+                .setContentText("Would you like to cancel the alert? Sending in 10 seconds...")
+                .setPriority(NotificationCompat.PRIORITY_MAX)
 //HERE ARE YOUR BUTTONS
                 .addAction(R.drawable.ic_fall_alert_cancel, "Cancel Alert", cancelPendingIntent)
                 .addAction(R.drawable.ic_fall_alert_ok, "Send Alert", continuePendingIntent)

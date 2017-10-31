@@ -20,6 +20,8 @@ import com.njit.ece.senior_project.medical_sensor.data.DataProvider.BluetoothSen
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.BufferedDataProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataEvent;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataProvider;
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.HeartRateListener;
+import com.njit.ece.senior_project.medical_sensor.data.DataProvider.HeartRateProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.RawDataListener;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.RawDataProvider;
 import com.njit.ece.senior_project.medical_sensor.data.FallDetector.ActivityClassificationFallDetector;
@@ -29,13 +31,15 @@ import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallEvent;
 import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallListener;
 import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallNotifier;
 import com.njit.ece.senior_project.medical_sensor.data.SampleLoader.SampleDataLoader;
+import com.njit.ece.senior_project.medical_sensor.data.Time.BigBen;
+import com.njit.ece.senior_project.medical_sensor.data.Time.BluetoothTimeListener;
 import com.njit.ece.senior_project.medical_sensor.data.util.ArrayHelper;
 import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
 
 import me.aflak.bluetooth.Bluetooth;
 
 
-public class ActivityClassifierActivity extends AppCompatActivity implements RawDataListener, ClassificationListener, FallListener {
+public class ActivityClassifierActivity extends AppCompatActivity implements RawDataListener, ClassificationListener, FallListener, HeartRateListener {
 
     private ActivityClassifier classifier;
 
@@ -64,16 +68,28 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
             Bluetooth b = new Bluetooth(this);
             b.enableBluetooth();
 
+            // setup time
+            Log.d("TimeBroadcast", "Setting up time broadcast");
+            BluetoothTimeListener bluetoothTimeListener = new BluetoothTimeListener(b);
+            BigBen bigBen = new BigBen();
+            bigBen.addTimeListener(bluetoothTimeListener);
+            bigBen.start();
+
             // get the paired item
             int pos = getIntent().getExtras().getInt("pos");
             String name = b.getPairedDevices().get(pos).getName();
             // connect to device
             b.connectToDevice(b.getPairedDevices().get(pos));
 
-            rawDataProvider = new BluetoothSensorDataProvider(new BluetoothMessageProviderImpl(b));
+            BluetoothSensorDataProvider bluetoothSensorDataProvider = new BluetoothSensorDataProvider(new BluetoothMessageProviderImpl(b));
+
+            rawDataProvider = bluetoothSensorDataProvider;
+
+            // track heart rate
+            bluetoothSensorDataProvider.addHeartRateListener(this);
 
         } else {
-            throw new IllegalStateException("You need to select a data source!");
+            throw new IllegalStateException("You need to select a data source (Android or Bluetooth)!");
         }
 
 
@@ -114,7 +130,6 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
         FallAlerter fallAlerter = FallAlerter.getInstance();
         fallDetector.addFallListener(fallAlerter);
 
-
     }
 
 
@@ -151,7 +166,7 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
         // unregister listener (for now don't do the classification while the App is paused)
         super.onPause();
 
-        rawDataProvider.pause();
+        //rawDataProvider.pause();
     }
 
     @Override
@@ -230,7 +245,26 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
     }
 
     @Override
-    public void onFallDetected(FallEvent event) {
-        ((TextView) findViewById(R.id.last_fall_time)).setText(event.getFallTime().toString());
+    public void onFallDetected(final FallEvent event) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) findViewById(R.id.last_fall_time)).setText(event.getFallTime().toString());
+            }
+        });
+
+    }
+
+    @Override
+    public void onHeartRateChanged(final double heartRate) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) findViewById(R.id.heart_rate)).setText("HR: " + heartRate);
+            }
+        });
+
     }
 }

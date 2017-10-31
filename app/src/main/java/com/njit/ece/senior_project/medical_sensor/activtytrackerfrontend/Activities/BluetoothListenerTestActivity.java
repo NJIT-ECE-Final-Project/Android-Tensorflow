@@ -3,6 +3,7 @@ package com.njit.ece.senior_project.medical_sensor.activtytrackerfrontend.Activi
 import android.hardware.SensorEvent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import com.njit.ece.senior_project.medical_sensor.activtytrackerfrontend.R;
@@ -12,6 +13,8 @@ import com.njit.ece.senior_project.medical_sensor.data.BluetoothMessageProvider.
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.BluetoothSensorDataProvider;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.DataEvent;
 import com.njit.ece.senior_project.medical_sensor.data.DataProvider.RawDataListener;
+import com.njit.ece.senior_project.medical_sensor.data.Time.BigBen;
+import com.njit.ece.senior_project.medical_sensor.data.Time.BluetoothTimeListener;
 
 import me.aflak.bluetooth.Bluetooth;
 
@@ -28,6 +31,8 @@ public class BluetoothListenerTestActivity extends AppCompatActivity  implements
         Bluetooth b = new Bluetooth(this);
         b.enableBluetooth();
 
+        // setup time
+
         // setup callbacks to get asynchronous updates on connection status and sensor data
         messageProvider = new BluetoothMessageProviderImpl(b);
         messageProvider.addBluetoothMessageListener(this);
@@ -41,6 +46,13 @@ public class BluetoothListenerTestActivity extends AppCompatActivity  implements
         String name = b.getPairedDevices().get(pos).getName();
         // connect to device
         b.connectToDevice(b.getPairedDevices().get(pos));
+
+        Log.d("TimeBroadcast", "Setting up time broadcast");
+        BluetoothTimeListener bluetoothTimeListener = new BluetoothTimeListener(b);
+        BigBen bigBen = new BigBen();
+        bigBen.addTimeListener(bluetoothTimeListener);
+        bigBen.start();
+
     }
 
     @Override

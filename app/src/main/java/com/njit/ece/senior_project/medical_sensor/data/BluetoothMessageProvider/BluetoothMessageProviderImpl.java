@@ -54,7 +54,7 @@ public class BluetoothMessageProviderImpl implements BluetoothMessageProvider {
             listener.onMessageChanged(message);
         }
 
-        bluetooth.send("I got it!");
+        //bluetooth.send("I got it!");
     }
 
     @Override
