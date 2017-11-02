@@ -13,7 +13,7 @@ public class BigBen implements TimeBroadcaster {
 
     private static final String prefix = "T:";
 
-    private static final long delay = 60 * 1000;
+    private static final long delay = 1 * 1000;
 
     private List<TimeListener> timeListeners = new ArrayList<>();
 
@@ -29,14 +29,18 @@ public class BigBen implements TimeBroadcaster {
             @Override
             public void run() {
 
-                Log.d("TimeBroadcast", "Getting current time for broadcast");
+                while(true) {
 
-                Date currTime = new Date();
-                broadcastTime(currTime);
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Log.d("TimeBroadcast", "Getting current time for broadcast");
+
+                    Date currTime = new Date();
+                    broadcastTime(currTime);
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
                 }
             }
         }).start();

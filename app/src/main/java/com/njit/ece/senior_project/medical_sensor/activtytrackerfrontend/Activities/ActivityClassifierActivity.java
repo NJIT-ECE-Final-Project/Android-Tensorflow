@@ -33,13 +33,18 @@ import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallNotifier
 import com.njit.ece.senior_project.medical_sensor.data.SampleLoader.SampleDataLoader;
 import com.njit.ece.senior_project.medical_sensor.data.Time.BigBen;
 import com.njit.ece.senior_project.medical_sensor.data.Time.BluetoothTimeListener;
+import com.njit.ece.senior_project.medical_sensor.data.Time.TimeListener;
 import com.njit.ece.senior_project.medical_sensor.data.util.ArrayHelper;
 import com.njit.ece.senior_project.medical_sensor.tensorflow.ActivityClassifier;
+
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import me.aflak.bluetooth.Bluetooth;
 
 
-public class ActivityClassifierActivity extends AppCompatActivity implements RawDataListener, ClassificationListener, FallListener, HeartRateListener {
+public class ActivityClassifierActivity extends AppCompatActivity implements RawDataListener, ClassificationListener, FallListener, HeartRateListener, TimeListener {
 
     private ActivityClassifier classifier;
 
@@ -68,11 +73,12 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
             Bluetooth b = new Bluetooth(this);
             b.enableBluetooth();
 
-            // setup time
+            // setup time (broadcast time to device once per minute)
             Log.d("TimeBroadcast", "Setting up time broadcast");
             BluetoothTimeListener bluetoothTimeListener = new BluetoothTimeListener(b);
             BigBen bigBen = new BigBen();
             bigBen.addTimeListener(bluetoothTimeListener);
+            bigBen.addTimeListener(this);
             bigBen.start();
 
             // get the paired item
@@ -266,5 +272,15 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
             }
         });
 
+    }
+
+    @Override
+    public void onTimeChanged(final Date currTime) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) findViewById(R.id.current_time)).setText(MessageFormat.format("Time: {0}", new SimpleDateFormat("h:mm a").format(currTime)));
+            }
+        });
     }
 }

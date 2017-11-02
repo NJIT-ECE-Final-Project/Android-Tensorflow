@@ -4,7 +4,6 @@ import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.ExecutionException;
 
 import me.aflak.bluetooth.Bluetooth;
 
@@ -15,7 +14,7 @@ public class BluetoothTimeListener implements TimeListener {
 
     private Bluetooth bluetooth;
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("h:mm a");
 
     public BluetoothTimeListener(Bluetooth bluetooth) {
         this.bluetooth = bluetooth;
@@ -26,7 +25,8 @@ public class BluetoothTimeListener implements TimeListener {
         String theTime = dateFormat.format(currTime);
 
         try {
-            bluetooth.send(theTime);
+            Log.d("TimeProvider", "Sending current time to device");
+            bluetooth.send("T:" + theTime + ".");
         } catch(Exception e) {
             Log.w("TimeProvider", "Could not send time update to device due to an error", e);
         }
