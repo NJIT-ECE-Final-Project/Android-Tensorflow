@@ -1,13 +1,9 @@
 package com.njit.ece.senior_project.medical_sensor.data.DataProvider;
 
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.provider.ContactsContract;
 import android.util.Log;
 
 import com.njit.ece.senior_project.medical_sensor.data.BluetoothMessageProvider.BluetoothMessageListener;
 import com.njit.ece.senior_project.medical_sensor.data.BluetoothMessageProvider.BluetoothMessageProvider;
-import com.njit.ece.senior_project.medical_sensor.data.BluetoothMessageProvider.BluetoothMessageProviderImpl;
 import com.njit.ece.senior_project.medical_sensor.data.Filters.SimpleHighPass;
 import com.njit.ece.senior_project.medical_sensor.data.util.DataHelper;
 
@@ -15,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.aflak.bluetooth.Bluetooth;
+import static java.lang.Math.PI;
 
 /**
  * Provides raw data taken from the Bluetooth module, by parsing each of the messages sent via
@@ -37,6 +33,11 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
 
 
     public BluetoothSensorDataProvider(BluetoothMessageProvider provider) {
+
+        for(int i = 0; i < 3; i++) {
+            gyroHighPass[i] = new SimpleHighPass(0.99);
+        }
+
         provider.addBluetoothMessageListener(this);
 
         for(int i = 0; i < accelHighPass.length; i++) {
@@ -86,9 +87,14 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
                 }
 
                 float[] accelFiltered = new float[3];
-                for(int i = 0; i < 3; i++) {
+                for(int i = 0; i < 3; i++) { 
+                    accel[i] = -1 * accel[i];
                     accelFiltered[i] = (float) accelHighPass[i].getNextDataPoint(accel[i]);
-                    gyro[i] = (float) gyroHighPass[i].getNextDataPoint(gyro[i]);
+                    gyro[i] = (float) gyroHighPass[i].getNextDataPoint((float) (gyro[i] * PI / 180f));
+                    if(i == 0) {
+                        accelFiltered[i] = -1 * accelFiltered[i];
+                        gyro[i] = -1 * gyro[i];
+                    }
                 }
 
                 //TODO filter

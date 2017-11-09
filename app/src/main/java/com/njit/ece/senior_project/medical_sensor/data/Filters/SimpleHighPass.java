@@ -10,12 +10,16 @@ public class SimpleHighPass {
     private double currVal;
     private double prevData;
 
-
-    private final double ALPHA = 0.9;
+    // default alpha to 0.9
+    private double ALPHA = 0.9;
 
 
     public SimpleHighPass() {
 
+    }
+
+    public SimpleHighPass(double alpha) {
+        ALPHA = alpha;
     }
 
 
