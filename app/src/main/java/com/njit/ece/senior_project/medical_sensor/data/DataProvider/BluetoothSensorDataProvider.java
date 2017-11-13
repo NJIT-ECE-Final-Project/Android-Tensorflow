@@ -87,11 +87,11 @@ public class BluetoothSensorDataProvider implements BluetoothMessageListener, Ra
                 }
 
                 float[] accelFiltered = new float[3];
-                for(int i = 0; i < 3; i++) { 
-                    accel[i] = -1 * accel[i];
+                for(int i = 0; i < 3; i++) {
                     accelFiltered[i] = (float) accelHighPass[i].getNextDataPoint(accel[i]);
                     gyro[i] = (float) gyroHighPass[i].getNextDataPoint((float) (gyro[i] * PI / 180f));
-                    if(i == 0) {
+                    if(i == 0) { // invert the x axis
+                        accel[i] = -1 * accel[i];
                         accelFiltered[i] = -1 * accelFiltered[i];
                         gyro[i] = -1 * gyro[i];
                     }

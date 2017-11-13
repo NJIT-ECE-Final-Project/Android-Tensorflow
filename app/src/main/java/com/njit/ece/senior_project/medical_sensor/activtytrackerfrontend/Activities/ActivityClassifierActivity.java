@@ -30,6 +30,7 @@ import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallDetector
 import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallEvent;
 import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallListener;
 import com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallNotifier;
+import com.njit.ece.senior_project.medical_sensor.data.FitnessTracking.Persistance.FitnessTracker;
 import com.njit.ece.senior_project.medical_sensor.data.SampleLoader.SampleDataLoader;
 import com.njit.ece.senior_project.medical_sensor.data.Time.BigBen;
 import com.njit.ece.senior_project.medical_sensor.data.Time.BluetoothTimeListener;
@@ -110,6 +111,10 @@ public class ActivityClassifierActivity extends AppCompatActivity implements Raw
 
         // pass clasification directly to this activity to display
         classificationProvider.addClassificationListener(this);
+
+        // create a fitness tracker to log activity data
+        FitnessTracker fitnessTracker = new FitnessTracker(this.getApplicationContext());
+        classificationProvider.addClassificationListener(fitnessTracker);
 
         // initialize classification list to show a ? for all probs
         for(int i = 0; i < classificationProbs.length; i++) {
