@@ -8,13 +8,14 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activities.ActivityClassifierActivity"></activity>
-        <activity android:name=".Activities.DeviceScanActivity"></activity>
-        <activity android:name=".Activities.DeviceSelectActivity"></activity>
-        <activity android:name=".Activities.SerialConsoleActivity"></activity>
-        <activity android:name=".Activities.DeviceSelectActivityForListenerTest"/>
-        <activity android:name=".Activities.DeviceSelectActivityForActivityClassifier"/>
-        <service android:name="com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallNotifier$NotificationActionService"/>
+        <activity android:name=".Activities.ActivityClassifierActivity" />
+        <activity android:name=".Activities.DeviceScanActivity" />
+        <activity android:name=".Activities.DeviceSelectActivity" />
+        <activity android:name=".Activities.SerialConsoleActivity" />
+        <activity android:name=".Activities.DeviceSelectActivityForListenerTest" />
+        <activity android:name=".Activities.DeviceSelectActivityForActivityClassifier" />
+
+        <service android:name="com.njit.ece.senior_project.medical_sensor.data.FallDetector.FallNotifier$NotificationActionService" />
 
         <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
         <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -30,7 +31,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.BluetoothListenerTestActivity"></activity>
+        <activity android:name=".Activities.BluetoothListenerTestActivity" />
+        <activity android:name=".Activities.DailyLog"></activity>
     </application>
 
 </manifest>

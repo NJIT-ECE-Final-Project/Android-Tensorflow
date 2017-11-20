@@ -60,6 +60,10 @@ public class DailyLogEntry {
     }
 
     public static String getID(Date date) {
-        return "DailyLogEntry:" + new SimpleDateFormat("yyyy-MM-dd").format(date);
+        return getBaseID() + new SimpleDateFormat("yyyy-MM-dd").format(date);
+    }
+
+    public static String getBaseID() {
+        return "DailyLogEntry:";
     }
 }

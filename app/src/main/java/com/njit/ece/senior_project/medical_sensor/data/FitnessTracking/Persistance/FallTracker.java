@@ -27,7 +27,7 @@ public class FallTracker implements FallListener {
         } catch (Exception e) {
             Log.e("FallTracker", "Unexpected exception", e);
 
-            
+
 
         }
     }

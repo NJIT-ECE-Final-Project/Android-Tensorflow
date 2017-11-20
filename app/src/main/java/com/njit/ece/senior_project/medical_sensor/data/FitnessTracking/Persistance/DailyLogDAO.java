@@ -8,7 +8,9 @@ import com.snappydb.DB;
 import com.snappydb.DBFactory;
 import com.snappydb.SnappydbException;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -55,5 +57,26 @@ public class DailyLogDAO {
             e.printStackTrace();
             Log.e("DailyLogDAO", "Unexpected exeption", e);
         }
+    }
+
+    public List<DailyLogEntry> getAllLogEntries() {
+
+        try {
+            String[] keys = snappydb.findKeys(DailyLogEntry.getBaseID());
+            List<DailyLogEntry> entries = new ArrayList<>();
+
+            for(String key : keys) {
+                entries.add(snappydb.getObject(key, DailyLogEntry.class));
+            }
+
+            return entries;
+        } catch (SnappydbException e) {
+            e.printStackTrace();
+            Log.e("DailyLogDAO", "Unexpected exception", e);
+            throw new RuntimeException(e);
+        }
+
+
+
     }
 }

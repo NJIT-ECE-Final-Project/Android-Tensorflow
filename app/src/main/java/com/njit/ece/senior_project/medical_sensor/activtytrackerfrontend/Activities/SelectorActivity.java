@@ -30,6 +30,7 @@ public class SelectorActivity extends AppCompatActivity {
         activityList.put("Activity Classification (Bluetooth Sensor Data)", DeviceSelectActivityForActivityClassifier.class);
         activityList.put("Serial Console", DeviceSelectActivity.class);
         activityList.put("Message Listener Test", DeviceSelectActivityForListenerTest.class);
+        activityList.put("Daily Log View", DailyLog.class);
         // get a list of all the names of those activies, to drive the list view
         activityNames = new ArrayList<>(activityList.keySet());
     }
